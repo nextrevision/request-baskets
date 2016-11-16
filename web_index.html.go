@@ -23,6 +23,11 @@ const (
     #baskets li:before { content: "\f291"; font-family: "FontAwesome"; position: absolute; left: 0px; top:0px; }
   </style>
 
+  <link rel="stylesheet" href="https://darklynx.github.io/strapdown/v/gh-fork-ribbon/gh-fork-ribbon.css">
+  <!--[if lt IE 9]>
+    <link rel="stylesheet" href="https://darklynx.github.io/strapdown/v/gh-fork-ribbon/gh-fork-ribbon.ie.css">
+  <![endif]-->
+
   <script>
   (function($) {
     var basketsCount = 0;
@@ -135,6 +140,8 @@ const (
   </script>
 </head>
 <body>
+  <a class="github-fork-ribbon left-top" href="https://github.com/darklynx/request-baskets" title="Fork me on GitHub">Fork me on GitHub</a>
+
   <!-- Fixed navbar -->
   <nav class="navbar navbar-default navbar-fixed-top">
     <div class="container">
