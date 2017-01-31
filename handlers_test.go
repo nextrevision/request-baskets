@@ -36,6 +36,15 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
+func TestParseInt(t *testing.T) {
+	assert.Equal(t, 12, parseInt("12", 1, 100, 50))
+	assert.Equal(t, 50, parseInt("abc", 1, 100, 50))
+	// out of range
+	assert.Equal(t, 1, parseInt("0", 1, 100, 50))
+	assert.Equal(t, 1, parseInt("-10", 1, 100, 50))
+	assert.Equal(t, 100, parseInt("500", 1, 100, 50))
+}
+
 func TestCreateBasket(t *testing.T) {
 	basket := "create01"
 
@@ -55,9 +64,9 @@ func TestCreateBasket(t *testing.T) {
 		if assert.NotNil(t, b, "basket '%v' should be created", basket) {
 			config := b.Config()
 			assert.Equal(t, 200, config.Capacity, "wrong basket capacity")
-			assert.False(t, config.InsecureTls, "wrong value of Insecure TLS flag")
+			assert.False(t, config.InsecureTLS, "wrong value of Insecure TLS flag")
 			assert.False(t, config.ExpandPath, "wrong value of Expand Path flag")
-			assert.Empty(t, config.ForwardUrl, "Forward URL is not expected")
+			assert.Empty(t, config.ForwardURL, "Forward URL is not expected")
 		}
 	}
 }
@@ -83,15 +92,15 @@ func TestCreateBasket_CustomConfig(t *testing.T) {
 		if assert.NotNil(t, b, "basket '%v' should be created", basket) {
 			config := b.Config()
 			assert.Equal(t, 30, config.Capacity, "wrong basket capacity")
-			assert.True(t, config.InsecureTls, "wrong value of Insecure TLS flag")
+			assert.True(t, config.InsecureTLS, "wrong value of Insecure TLS flag")
 			assert.True(t, config.ExpandPath, "wrong value of Expand Path flag")
-			assert.Equal(t, "http://localhost:12345/test", config.ForwardUrl, "wrong Forward URL")
+			assert.Equal(t, "http://localhost:12345/test", config.ForwardURL, "wrong Forward URL")
 		}
 	}
 }
 
 func TestCreateBasket_Forbidden(t *testing.T) {
-	basket := WEB_ROOT
+	basket := serviceUIPath
 
 	r, err := http.NewRequest("POST", "http://localhost:55555/baskets/"+basket, strings.NewReader(""))
 	if assert.NoError(t, err) {
@@ -247,9 +256,9 @@ func TestGetBasket(t *testing.T) {
 				err = json.Unmarshal(w.Body.Bytes(), config)
 				if assert.NoError(t, err, "Failed to parse GetBasket response") {
 					assert.Equal(t, 200, config.Capacity, "wrong basket capacity")
-					assert.False(t, config.InsecureTls, "wrong value of Insecure TLS flag")
+					assert.False(t, config.InsecureTLS, "wrong value of Insecure TLS flag")
 					assert.False(t, config.ExpandPath, "wrong value of Expand Path flag")
-					assert.Empty(t, config.ForwardUrl, "Forward URL is not expected")
+					assert.Empty(t, config.ForwardURL, "Forward URL is not expected")
 				}
 			}
 		}
@@ -343,9 +352,9 @@ func TestUpdateBasket(t *testing.T) {
 				// validate update
 				config := basketsDb.Get(basket).Config()
 				assert.Equal(t, 50, config.Capacity, "wrong basket capacity")
-				assert.False(t, config.InsecureTls, "wrong value of Insecure TLS flag")
+				assert.False(t, config.InsecureTLS, "wrong value of Insecure TLS flag")
 				assert.True(t, config.ExpandPath, "wrong value of Expand Path flag")
-				assert.Equal(t, "http://test.server/forward", config.ForwardUrl, "wrong Forward URL")
+				assert.Equal(t, "http://test.server/forward", config.ForwardURL, "wrong Forward URL")
 			}
 		}
 	}
@@ -379,9 +388,9 @@ func TestUpdateBasket_EmptyConfig(t *testing.T) {
 				// validate update
 				config := basketsDb.Get(basket).Config()
 				assert.Equal(t, 200, config.Capacity, "wrong basket capacity")
-				assert.False(t, config.InsecureTls, "wrong value of Insecure TLS flag")
+				assert.False(t, config.InsecureTLS, "wrong value of Insecure TLS flag")
 				assert.False(t, config.ExpandPath, "wrong value of Expand Path flag")
-				assert.Empty(t, config.ForwardUrl, "Forward URL is not expected")
+				assert.Empty(t, config.ForwardURL, "Forward URL is not expected")
 			}
 		}
 	}
@@ -415,9 +424,9 @@ func TestUpdateBasket_BrokenJson(t *testing.T) {
 				// validate update
 				config := basketsDb.Get(basket).Config()
 				assert.Equal(t, 200, config.Capacity, "wrong basket capacity")
-				assert.False(t, config.InsecureTls, "wrong value of Insecure TLS flag")
+				assert.False(t, config.InsecureTLS, "wrong value of Insecure TLS flag")
 				assert.False(t, config.ExpandPath, "wrong value of Expand Path flag")
-				assert.Empty(t, config.ForwardUrl, "Forward URL is not expected")
+				assert.Empty(t, config.ForwardURL, "Forward URL is not expected")
 			}
 		}
 	}
@@ -812,7 +821,7 @@ func TestForwardToWeb(t *testing.T) {
 
 		// validate response: 302 - Found
 		assert.Equal(t, 302, w.Code, "wrong HTTP result code")
-		assert.Equal(t, "/"+WEB_ROOT, w.Header().Get("Location"), "wrong Location header")
+		assert.Equal(t, "/"+serviceUIPath, w.Header().Get("Location"), "wrong Location header")
 	}
 }
 
