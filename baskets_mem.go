@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"strings"
 	"sync"
 )
@@ -63,20 +62,17 @@ func (basket *memoryBasket) SetResponse(method string, response ResponseConfig) 
 	basket.responses[method] = &response
 }
 
-func (basket *memoryBasket) Add(req *http.Request) *RequestData {
+func (basket *memoryBasket) Add(req *RequestData) {
 	basket.Lock()
 	defer basket.Unlock()
 
-	data := ToRequestData(req)
 	// insert in front of collection
-	basket.requests = append([]*RequestData{data}, basket.requests...)
+	basket.requests = append([]*RequestData{req}, basket.requests...)
 
 	// keep total number of all collected requests
 	basket.totalCount++
 	// apply limits according to basket capacity
 	basket.applyLimit()
-
-	return data
 }
 
 func (basket *memoryBasket) Clear() {

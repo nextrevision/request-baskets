@@ -67,6 +67,11 @@ const (
         headers.push(header + ": " + request.headers[header].join(","));
       }
 
+      var responseHeaders = [];
+      for (header in request.response.headers) {
+        responseHeaders.push(header + ": " + request.response.headers[header].join(","));
+      }
+
       var headerClass = "default";
       switch(request.method) {
         case "GET":
@@ -109,6 +114,14 @@ const (
           '<div class="panel-body"><pre>' + escapeHTML(request.body) + '</pre></div></div></div>';
       }
 
+      if (request.response) {
+        html += '<div class="panel panel-default"><div class="panel-heading"><h4 class="panel-title">' +
+          '<a class="collapsed" data-toggle="collapse" data-parent="#' + id + '" href="#' + id + '_resp">Response (' + request.response.status + ')</a></h4></div>' +
+          '<div id="' + id + '_resp" class="panel-collapse collapse">' +
+          '<div class="panel-body">Headers:<pre>' + escapeHTML(responseHeaders.join('\n')) + '</pre>' +
+          'Body:<pre class="response-body">' + escapeHTML(request.response.body) + '</pre></div></div></div>';
+      }
+
       html += '</div></div></div><hr/>';
 
       return html;
@@ -139,6 +152,19 @@ const (
               var button = $('<button id="' + requestId + '_body_format_btn" for="' + requestId +
                 '" format="' + format + '" type="button" class="btn btn-default">Format Content</button>');
               $("#" + requestId + "_body div pre").after(button);
+
+              button.on("click", function(event) {
+                  formatBody(this);
+              });
+            }
+          }
+
+          if (request.response.body) {
+            var format = getContentFormat(request.response.headers["Content-Type"]);
+            if (format !== "UNKNOWN") {
+              var button = $('<button id="' + requestId + '_resp_body_format_btn" for="' + requestId +
+                '" format="' + format + '" type="button" class="btn btn-default">Format Content</button>');
+              $("#" + requestId + "_resp div pre.response-body").after(button);
 
               button.on("click", function(event) {
                   formatBody(this);
@@ -178,7 +204,7 @@ const (
       var requestId = button.attr("for");
       var format = button.attr("format");
 
-      var body = $("#" + requestId + "_body div pre");
+      var body = button.siblings("pre").last();
       var code = $('<code class="' + getHighlightLang(format) + '"></code>');
       code.text(formatText(body.text(), format));
       body.empty();
@@ -361,11 +387,13 @@ const (
     function updateConfig() {
       if (currentConfig && (
         currentConfig.forward_url != $("#basket_forward_url").val() ||
+        currentConfig.proxy_response != $("#basket_proxy_response").prop("checked") ||
         currentConfig.expand_path != $("#basket_expand_path").prop("checked") ||
         currentConfig.insecure_tls != $("#basket_insecure_tls").prop("checked") ||
         currentConfig.capacity != $("#basket_capacity").val()
       )) {
         currentConfig.forward_url = $("#basket_forward_url").val();
+        currentConfig.proxy_response = $("#basket_proxy_response").prop("checked");
         currentConfig.expand_path = $("#basket_expand_path").prop("checked");
         currentConfig.insecure_tls = $("#basket_insecure_tls").prop("checked");
         currentConfig.capacity = parseInt($("#basket_capacity").val());
@@ -419,6 +447,7 @@ const (
         if (data) {
           currentConfig = data;
           $("#basket_forward_url").val(currentConfig.forward_url);
+          $("#basket_proxy_response").prop("checked", currentConfig.proxy_response);
           $("#basket_expand_path").prop("checked", currentConfig.expand_path);
           $("#basket_insecure_tls").prop("checked", currentConfig.insecure_tls);
           $("#basket_capacity").val(currentConfig.capacity);
@@ -590,6 +619,11 @@ const (
             <label><input type="checkbox" id="basket_insecure_tls">
               <abbr class="text-danger" title="Warning! Enabling this feature will bypass certificate verification">Insecure TLS</abbr>
               only affects forwarding to URLs like <kbd>https://...</kbd>
+            </label>
+          </div>
+          <div class="checkbox">
+            <label><input type="checkbox" id="basket_proxy_response">
+              <abbr title="This will proxy the response from the forward URL above">Proxy Response</abbr>
             </label>
           </div>
           <div class="checkbox">
